@@ -7,17 +7,21 @@ import torch.distributions.normal as normal
 if __name__ == '__main__':
 
     S0=True     # WHEN S0=0 IS TRUE
-    n=20        # length of X0
-    expnumb=50  # expr numb
-    group=20   # group number
+    n=4        # length of X0
+    expnumb=500  # expr numb
+    group=10   # group number
 
     ########################################
-    X0ba=torch.tensor(5.1)
-    P0=torch.tensor(0.3)
-    Q=torch.tensor(0.2)
-    R=torch.tensor(0.1)
+    X0ba=torch.tensor(2.1)
+    P0=torch.tensor(50.0)
+    Q=torch.tensor(0.02)
+    R=torch.tensor(0.01)
     # F,G,H=torch.randint(0,10,(3,n,n)).float()
-    F,G,H=torch.rand(3,n,n)
+    # F,G,H=torch.rand(3,n,n)
+    F=torch.tensor([[1.0,0.0,0.1,0.0],[0.0,1.0,0.0,0.1],[0.0,0.0,1.0,0.0],[0.0,0.0,0.0,1.0]])
+    G=torch.tensor([[0.0],[0.005],[0.0],[0.1]])
+    H=torch.tensor([[1.0,0.0],[0.0,0.0],[0.0,1.0],[0.0,0.0]])
+    
 
     # print(torch.rand(3,n))
     # print(torch.randint(0,50,(3,n,n)))
@@ -43,7 +47,7 @@ if __name__ == '__main__':
     X=torch.zeros(expnumb,group,n,n)
     Z=torch.zeros(expnumb,group,n,n)
     Xyuce=torch.zeros(expnumb,group,n,n)
-    Zyuce=torch.zeros(expnumb,group,n,n)
+    Zyuce=torch.zeros(expnumb,group,2,n)
     # Xkk=torch.zeros(expnumb,group,n,n)
     # Pkk=torch.zeros(expnumb,group,n,n)
     result=torch.zeros(expnumb,n,n)
@@ -51,40 +55,40 @@ if __name__ == '__main__':
     montecarlo=torch.zeros(expnumb)
     for i in range(expnumb):
 
-        Xzero=nX0.sample(sample_shape=torch.Size([n])).reshape(-1)
+        Xzero=nX0.sample(sample_shape=torch.Size([n])).reshape(1,-1)
         Xzero_yuce=X0ba
 
         for j in range(group):
 
-            Wk=nWk.sample(sample_shape=torch.Size([n])).reshape(-1)
-            Vk=nVk.sample(sample_shape=torch.Size([n])).reshape(-1)
+            Wk=nWk.sample(sample_shape=torch.Size([n])).reshape(1,-1)
+            Vk=nVk.sample(sample_shape=torch.Size([n])).reshape(1,-1)
 
             if j==0:
 
-                X[i,j]=F*Xzero+G*Wk             # X1 by X0
-                Xyuce[i,j]=F*Xzero_yuce+G*Wk    # X1 by X0
+                X[i,j]=F.mm(Xzero.t())+G.mm(Wk)             # X1 by X0
+                Xyuce[i,j]=F*Xzero_yuce+G.mm(Wk)    # X1 by X0
 
                 # measurement update, X00 and P00 (need Z0 by X0)
-                Xkk=Xzero_yuce+P0*H*torch.inverse(torch.transpose(H, 0, 1)*P0*H+R)*(torch.transpose(H, 0, 1)*Xzero_yuce+Vk-torch.transpose(H, 0, 1)*Xzero_yuce)
-                Pkk=P0-P0*H*torch.inverse(torch.transpose(H, 0, 1)*P0*H+R)*torch.transpose(H, 0, 1)*P0
+                Xkk=Xzero_yuce+P0*H.mm(torch.inverse((H.t()*P0).mm(H)+R)).mm(H.t()*Xzero_yuce+Vk-H.t()*Xzero_yuce)
+                Pkk=P0-P0*H.mm(torch.inverse((H.t()*P0).mm(H)+R)).mm(H.t())*P0
 
             else:
                 
-                X[i,j]=F*X[i,j-1]+G*Wk                               # X2 by X1
-                Xyuce[i,j]=F*Xyuce[i,j-1]+G*Wk                       # X2 by X1
-                Zyuce[i,j]=torch.transpose(H, 0, 1)*Xyuce[i,j-1]+Vk  # Z1 by X1
+                X[i,j]=F.mm(X[i,j-1])+G.mm(Wk)                          # X2 by X1
+                Xyuce[i,j]=F.mm(Xyuce[i,j-1])+G.mm(Wk)               # X2 by X1
+                Zyuce[i,j]=H.t().mm(Xyuce[i,j-1])+Vk  # Z1 by X1
 
                 # time update
-                Xyuce_temp=F*Xkk
-                Pyuce_temp=F*Pkk*torch.transpose(F, 0, 1)+G*Q*torch.transpose(G, 0, 1)
+                Xyuce_temp=F.mm(Xkk)
+                Pyuce_temp=F.mm(Pkk).mm(F.t())+(G*Q).mm(G.t())
 
                 # measurement update X11 and P11 (need Z1)
-                Xkk=Xyuce_temp+Pyuce_temp*H*torch.inverse(torch.transpose(H, 0, 1)*Pyuce_temp*H+R)*(Zyuce[i,j]-torch.transpose(H, 0, 1)*Xyuce_temp)
-                Pkk=Pyuce_temp-Pyuce_temp*H*torch.inverse(torch.transpose(H, 0, 1)*Pyuce_temp*H+R)*torch.transpose(H, 0, 1)*Pyuce_temp
+                Xkk=Xyuce_temp+Pyuce_temp.mm(H).mm(torch.inverse(H.t().mm(Pyuce_temp).mm(H)+R)).mm(Zyuce[i,j]-H.t().mm(Xyuce_temp))
+                Pkk=Pyuce_temp-Pyuce_temp.mm(H).mm(torch.inverse(H.t().mm(Pyuce_temp).mm(H)+R)).mm(H.t()).mm(Pyuce_temp)
         
         # DI I CI SHIYAN
-        result[i]=(X[i,-1]-F*Xkk)*torch.transpose((X[i,-1]-F*Xkk),0,1)
-        resultPkkjy[i]=F*Pkk*torch.transpose(F, 0, 1)+G*Q*torch.transpose(G, 0, 1)
+        result[i]=(X[i,-1]-F.mm(Xkk)).mm((X[i,-1]-F.mm(Xkk)).t())
+        resultPkkjy[i]=F.mm(Pkk).mm(F.t())+(G*Q).mm(G.t())
         montecarlo[i]=torch.dist(torch.mean(result[:i+1],0),resultPkkjy[i],p=1)/torch.dist(resultPkkjy[i],torch.zeros(n,n),p=1)
         
     print(montecarlo[-1])

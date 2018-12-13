@@ -13,10 +13,14 @@ print(c)
 
 
 a=torch.tensor([[1.0,2.0,3.0],[4.0,5.0,6.0]])
-b=torch.tensor([1.0,2.0,3.0])
+b=torch.tensor([[1.0,2.0],[3.0,5.0]])
+c=torch.tensor(2.2)
+d=torch.tensor([[1.0],[2.0],[3.0],[5.0]])
+e=torch.tensor([1.0,2.0,3.0,5.0])
+
 # print(torch.inverse(a))
-print(torch.mean(a,1))
-print(a+3)
+
+print(d.mm(e.reshape(1,-1)))
 
 # a=torch.tensor([1.0,2.0,3.0])
 # b=torch.tensor([5.0,6.0,7.0])
