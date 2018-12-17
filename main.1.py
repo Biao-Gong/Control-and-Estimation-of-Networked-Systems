@@ -9,7 +9,7 @@ if __name__ == '__main__':
     S0=True     # WHEN S0=0 IS TRUE
     n=4        # length of X0
     expnumb=100  # expr numb
-    group=50   # group number
+    group=10   # group number
 
     ########################################
     X0ba=torch.tensor(2.0)
