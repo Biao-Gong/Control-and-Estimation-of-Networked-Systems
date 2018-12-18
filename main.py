@@ -81,12 +81,15 @@ if __name__ == '__main__':
                 # measurement update X11 and P11 (need Z1)
                 Xkk=Xyuce_temp+Pyuce_temp*H*torch.inverse(torch.transpose(H, 0, 1)*Pyuce_temp*H+R)*(Zyuce[i,j]-torch.transpose(H, 0, 1)*Xyuce_temp)
                 Pkk=Pyuce_temp-Pyuce_temp*H*torch.inverse(torch.transpose(H, 0, 1)*Pyuce_temp*H+R)*torch.transpose(H, 0, 1)*Pyuce_temp
-        
+            
+        # print(Pkk)
         # DI I CI SHIYAN
         result[i]=(X[i,-1]-F*Xkk)*torch.transpose((X[i,-1]-F*Xkk),0,1)
         resultPkkjy[i]=F*Pkk*torch.transpose(F, 0, 1)+G*Q*torch.transpose(G, 0, 1)
         montecarlo[i]=torch.dist(torch.mean(result[:i+1],0),resultPkkjy[i],p=1)/torch.dist(resultPkkjy[i],torch.zeros(n,n),p=1)
-        
+    
+    # for i in range(len(resultPkkjy)):
+    #     print(torch.dist(resultPkkjy[i],resultPkkjy[i-1],p=2))
     print(montecarlo[-1])
     print(montecarlo)
         
