@@ -1,3 +1,5 @@
+#init
+
 import torch
 import matplotlib.pyplot as plt
 import random
@@ -22,7 +24,6 @@ if __name__ == '__main__':
     F=torch.tensor([[1.0,0.0,0.0001,0.0],[0.0,1.0,0.0,0.0001],[0.0,0.0,1.0,0.0],[0.0,0.0,0.0,1.0]])
     G=torch.tensor([[0.0],[0.000000005],[0.0],[0.0001]])
     H=torch.tensor([[1.0,0.0],[0.0,0.0],[0.0,1.0],[0.0,0.0]])
-
     
     # print(torch.rand(3,n))
     # print(torch.randint(0,50,(3,n,n)))
@@ -46,7 +47,7 @@ if __name__ == '__main__':
     ########################################
     #start
     X=torch.zeros(expnumb,group,n,n)
-    # Z=torch.zeros(expnumb,group,2,n)
+    Z=torch.zeros(expnumb,group,n,n)
     Xyuce=torch.zeros(expnumb,group,n,n)
     Zyuce=torch.zeros(expnumb,group,2,n)
     # Xkk=torch.zeros(expnumb,group,n,n)
@@ -54,7 +55,6 @@ if __name__ == '__main__':
     result=torch.zeros(expnumb,n,n)
     resultPkkjy=torch.zeros(expnumb,n,n)
     montecarlo=torch.zeros(expnumb)
-    ########################################
     for i in range(expnumb):
         for j in range(group):
 
@@ -62,7 +62,6 @@ if __name__ == '__main__':
             Vk=nVk.sample(sample_shape=torch.Size([n])).reshape(1,-1)
 
             if j==0:
-                
                 X[i,j]=F.mm(nX0.sample(sample_shape=torch.Size([n])).reshape(1,-1).t())+G.mm(Wk)             # X1 by X0
                 Xyuce[i,j]=F*X0ba+G.mm(Wk)                                                                   # X1 by X0
 
@@ -97,6 +96,8 @@ if __name__ == '__main__':
     for i in range(10):
         print(montecarlo[i])
         
+        
+        # print(torch.mean(X[i,j]-Xkk))
 
 
 

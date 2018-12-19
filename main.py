@@ -1,3 +1,6 @@
+#rand F G H
+
+
 import torch
 import matplotlib.pyplot as plt
 import random
@@ -81,7 +84,7 @@ if __name__ == '__main__':
                 # measurement update X11 and P11 (need Z1)
                 Xkk=Xyuce_temp+Pyuce_temp*H*torch.inverse(torch.transpose(H, 0, 1)*Pyuce_temp*H+R)*(Zyuce[i,j]-torch.transpose(H, 0, 1)*Xyuce_temp)
                 Pkk=Pyuce_temp-Pyuce_temp*H*torch.inverse(torch.transpose(H, 0, 1)*Pyuce_temp*H+R)*torch.transpose(H, 0, 1)*Pyuce_temp
-            
+           
         # print(Pkk)
         # DI I CI SHIYAN
         result[i]=(X[i,-1]-F*Xkk)*torch.transpose((X[i,-1]-F*Xkk),0,1)
