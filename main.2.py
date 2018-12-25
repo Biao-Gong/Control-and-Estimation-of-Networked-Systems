@@ -9,19 +9,20 @@ if __name__ == '__main__':
     S0=True     # WHEN S0=0 IS TRUE
     n=4        # length of X0
     Hn=2
-    expnumb=100  # expr numb
-    group=500   # group number
+    expnumb=50  # expr numb
+    group=1000   # group number
 
     ########################################
-    X0ba=torch.tensor([[0.0],[0.0],[1.0],[1.0]])
-    P=80.0
+    X0ba=torch.tensor([[0.0],[0.0],[3.0],[3.0]])
+    P=1.0
     P0=torch.eye(n)*P
-    Q=0.05
+    Q=0.5
     Q0=torch.eye(n)*Q
-    R=0.01
+    R=1.1
     R0=torch.eye(Hn)*R
-    F=torch.tensor([[1.0,0.0,1.0,0.0],[0.0,1.0,0.0,1.0],[0.0,0.0,1.0,0.0],[0.0,0.0,0.0,1.0]])
-    G=torch.tensor([[1.0,0.0,0.0,0.0],[0.0,1.0,0.0,0.0],[0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0]])
+    TT=0.001
+    F=torch.tensor([[1.0,0.0,TT,0.0],[0.0,1.0,0.0,TT],[0.0,0.0,1.0,0.0],[0.0,0.0,0.0,1.0]])
+    G=torch.tensor([[0.5*TT*TT,0.0,0.0,0.0],[0.0,0.5*TT*TT,0.0,0.0],[0.0,0.0,TT,0.0],[0.0,0.0,0.0,TT]])
     # H=torch.tensor([[1.0,0.0],[0.0,0.0],[0.0,1.0],[0.0,0.0]])
     H=torch.tensor([[1.0,0.0,0.0,0.0],[0.0,1.0,0.0,0.0]])
     ########################################
@@ -81,15 +82,16 @@ if __name__ == '__main__':
         # DI I CI SHIYAN
         result[i]=(X[i,-1]-F.mm(Xkk)).mm((X[i,-1]-F.mm(Xkk)).t())
         resultPkkjy[i]=F.mm(Pkk).mm(F.t())+G.mm(Q0).mm(G.t())
-        montecarlo[i]=torch.dist(torch.mean(result[:i+1],0),resultPkkjy[i],p=1)/torch.dist(resultPkkjy[i],torch.zeros(n,n),p=1)
+        montecarlo[i]=torch.dist(torch.mean(result[:i+1],0)/10000.0,resultPkkjy[i],p=1)/torch.dist(resultPkkjy[i],torch.zeros(n,n),p=1)
 
 
-    # plt.subplot(211)
-    # plt.plot(X[2,:,:2,0][:,0].numpy(),X[2,:,:2,0][:,1].numpy(),'o-')
-    # plt.plot(Xyuce[2,:,:2,0][:,0].numpy(),Xyuce[2,:,:2,0][:,1].numpy(),'o-')
+    plt.subplot(211)
+    # plt.plot(Xyuce[i,:,0,0].numpy(),Xyuce[i,:,1,0].numpy(),'o-')
+    # plt.plot(Zyuce[i,:,0,0].numpy(),Zyuce[i,:,1,0].numpy(),'o-')
+    plt.plot(torch.sum((Zyuce[i,:,:2,0]-Xyuce[i,:,:2,0])*(Zyuce[i,:,:2,0]-Xyuce[i,:,:2,0]),dim=1)[:200].numpy(),'o-')
 
-    # plt.subplot(212)
-    plt.plot(montecarlo.numpy())
+    plt.subplot(212)
+    plt.plot(montecarlo.numpy(),'o-')
     plt.show()
     # print(montecarlo[-1])
     # # print(montecarlo[0])
