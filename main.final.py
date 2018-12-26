@@ -10,7 +10,7 @@ if __name__ == '__main__':
     S0=True         # WHEN S0=0 IS TRUE
     n=4             # length of X0
     Hn=2
-    expnumb=100    # expr numb
+    expnumb=10000    # expr numb
     group=500       # group number
 
     ########################################
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
             # function
             Xyuce[i,j+1]=F.mm(Xyuce[i,j])+G.mm(Wk)     # X1 by X0
-            Zyuce[i,j+1]=H.mm(Xyuce[i,j+1])+Vk         # Z1 by X0            
+            Zyuce[i,j+1]=H.mm(Xyuce[i,j+1])+Vk         # Z1 by X1            
 
             # kalman
             Kk=Pkk.mm(H.t()).mm(torch.inverse(H.mm(Pkk).mm(H.t())+R0))
