@@ -7,11 +7,11 @@ import math
 
 if __name__ == '__main__':
 
-    S0=True         # WHEN S0=0 IS TRUE
+    S0=False         # WHEN S0=0 IS TRUE
     n=4             # length of X0
     Hn=2
-    expnumb=10000    # expr numb
-    group=500       # group number
+    expnumb=1000    # expr numb
+    group=50       # group number
 
     ########################################
     X0ba=torch.tensor([[0.0],[0.0],[2.0],[2.0]])
@@ -21,7 +21,7 @@ if __name__ == '__main__':
     Q0=torch.eye(n)*Q
     R=0.12
     R0=torch.eye(Hn)*R
-    Ts=0.01
+    Ts=0.0001
     F=torch.tensor([[1.0,0.0,Ts,0.0],
                     [0.0,1.0,0.0,Ts],
                     [0.0,0.0,1.0,0.0],
@@ -32,11 +32,16 @@ if __name__ == '__main__':
                     [0.0,0.0,0.0,Ts*Ts]])
     H=torch.tensor([[1.0,0.0,0.0,0.0],
                     [0.0,1.0,0.0,0.0]])
+    L=torch.tensor([[1.0,0.0,0.0,0.0,0.0,0.0],
+                    [1.0,2.0,0.0,0.0,0.0,0.0],
+                    [1.0,2.0,3.0,0.0,0.0,0.0],
+                    [1.0,2.0,3.0,4.0,0.0,0.0],
+                    [1.0,2.0,3.0,4.0,2.0,0.0],
+                    [1.0,2.0,3.0,4.0,1.0,3.0]])                  
     ########################################
     nX0=normal.Normal(X0ba, math.sqrt(P))
     nWk=normal.Normal(torch.zeros(n,1), math.sqrt(Q))
     nVk=normal.Normal(torch.zeros(Hn,1), math.sqrt(R))
-
     ########################################
     #start
     X=torch.zeros(expnumb,group,n,1)
@@ -53,7 +58,7 @@ if __name__ == '__main__':
 
         if i%100==0:
             print(i)
-            
+
         Xkk=nX0.sample()
         Pkk=P0
         Xyuce[i,0]=X0ba                                # X0yuce
@@ -63,6 +68,10 @@ if __name__ == '__main__':
 
             Wk=nWk.sample()
             Vk=nVk.sample()
+            if S0==False:
+                tempmat=L.mm(torch.cat((Wk.reshape(-1),Vk.reshape(-1))).reshape(-1,1))
+                Wk=tempmat[:n,0].reshape(-1,1)
+                Vk=tempmat[n:Hn+n,0].reshape(-1,1)
 
             # function
             Xyuce[i,j+1]=F.mm(Xyuce[i,j])+G.mm(Wk)     # X1 by X0
@@ -89,12 +98,7 @@ if __name__ == '__main__':
 
     ########################################
     # plot
-    # gen zong
-    plt.subplot(211)
-    plt.plot(Xyuce[i,::10,0,0].numpy(),Xyuce[i,::10,1,0].numpy(),'o-')
-    plt.plot(Xkk_save[i,::10,0,0].numpy(),Xkk_save[i,::10,1,0].numpy(),'*-')
     # montecarlo
-    plt.subplot(212)
     plt.plot(montecarlo.numpy()[::10],'o-')
     plt.show()
 
