@@ -19,9 +19,10 @@ import torch.distributions.normal as normal
 # normal.Normal(torch.zeros(2,1), torch.tensor([0.1]))
 # print(normal.Normal(torch.zeros(2,1), 0.1).sample())
 
-a=torch.tensor([1.0,2.0,3.0,4.0,5.0,6.0])
+a=torch.tensor([[1.0,2.0,3.0],[4.0,5.0,6.0]])
+a[:,0]=0.0
+print(a)
 
-print(a[np.linspace(0,5,num=3)])
 # d=torch.tensor([[1.0],[2.0],[3.0],[5.0]])
 # e=torch.tensor([[1.0,0.0,0.1,0.0],[0.0,1.0,0.0,0.1],[0.0,0.0,1.0,0.0],[0.0,0.0,0.0,1.0]])
 # print(d+e)

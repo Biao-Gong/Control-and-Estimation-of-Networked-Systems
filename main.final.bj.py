@@ -7,11 +7,11 @@ import math
 
 if __name__ == '__main__':
 
-    S0=True         # WHEN S0=0 IS TRUE
-    n=4             # length of X0
+    S0=True     # WHEN S0=0 IS TRUE
+    n=4        # length of X0
     Hn=2
-    expnumb=100    # expr numb
-    group=500       # group number
+    expnumb=1000  # expr numb
+    group=500    # group number
 
     ########################################
     X0ba=torch.tensor([[0.0],[0.0],[2.0],[2.0]])
@@ -44,20 +44,19 @@ if __name__ == '__main__':
     X=torch.zeros(expnumb,group,n,1)
     Xyuce=torch.zeros(expnumb,group,n,1)
     Zyuce=torch.zeros(expnumb,group,Hn,1)
-    Xkk_save=torch.zeros(expnumb,group,n,1)
-    Pkk_save=torch.zeros(expnumb,group,n,n)
+    Xkk=torch.zeros(expnumb,group,n,1)
+    Pkk=torch.zeros(expnumb,group,n,n)
+
+    Xkk[:,0]=nX0.sample()
+    Pkk[:,0]=P0
+    Xyuce[:,0]=X0ba
+    Zyuce[:,0]=H.mm(X0ba)+nVk.sample()
 
     result=torch.zeros(expnumb,n,n)
     resultPkkjy=torch.zeros(expnumb,n,n)
     montecarlo=torch.zeros(expnumb)
     ########################################
     for i in range(expnumb):
-
-        Xkk=nX0.sample()
-        Pkk=P0
-        Xyuce[i,0]=X0ba                                # X0yuce
-        Zyuce[i,0]=H.mm(X0ba)+nVk.sample()
-        
         for j in range(group-1):
 
             Wk=nWk.sample()
@@ -68,31 +67,25 @@ if __name__ == '__main__':
             Zyuce[i,j+1]=H.mm(Xyuce[i,j+1])+Vk         # Z1 by X0            
 
             # kalman
-            Kk=Pkk.mm(H.t()).mm(torch.inverse(H.mm(Pkk).mm(H.t())+R0))
-            Xkk=Xkk+Kk.mm(Zyuce[i,j]-H.mm(Xkk))
-            Pkk=Pkk-Kk.mm(H).mm(Pkk)
+            Kk=Pkk[i,j].mm(H.t()).mm(torch.inverse(H.mm(Pkk[i,j]).mm(H.t())+R0))
+            Xkk[i,j+1]=Xkk[i,j]+Kk.mm(Zyuce[i,j]-H.mm(Xkk[i,j]))
+            Pkk[i,j+1]=Pkk[i,j]-Kk.mm(H).mm(Pkk[i,j])
 
             # time update
-            Xkk=F.mm(Xkk)                                 # size is n*1
-            Pkk=F.mm(Pkk).mm(F.t())+G.mm(Q0).mm(G.t())    # size is n*n
-
-            # save
-            Xkk_save[i,j]=Xkk
-            Pkk_save[i,j]=Pkk
+            Xkk[i,j+1]=F.mm(Xkk[i,j+1])                                 # size is n*1
+            Pkk[i,j+1]=F.mm(Pkk[i,j+1]).mm(F.t())+G.mm(Q0).mm(G.t())    # size is n*n
 
         
         # DI I CI SHIYAN
-        result[i]=(Xyuce[i,-1]-Xkk).mm((Xyuce[i,-1]-Xkk).t())
-        resultPkkjy[i]=Pkk
+        result[i]=(Xyuce[i,-1]-Xkk[i,-1]).mm((Xyuce[i,-1]-Xkk[i,-1]).t())
+        resultPkkjy[i]=Pkk[i,-1]
         montecarlo[i]=torch.dist(torch.mean(result[:i+1],0),resultPkkjy[i],p=2)/torch.dist(resultPkkjy[i],torch.zeros(n,n),p=2)
 
-    ########################################
-    # plot
-    # gen zong
+
     plt.subplot(211)
     plt.plot(Xyuce[i,::10,0,0].numpy(),Xyuce[i,::10,1,0].numpy(),'o-')
-    plt.plot(Xkk_save[i,::10,0,0].numpy(),Xkk_save[i,::10,1,0].numpy(),'*-')
-    # montecarlo
+    plt.plot(Xkk[i,::10,0,0].numpy(),Xkk[i,::10,1,0].numpy(),'o-')
+
     plt.subplot(212)
     plt.plot(montecarlo.numpy()[::10],'o-')
     plt.show()
